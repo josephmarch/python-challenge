@@ -13,12 +13,15 @@ datapath = os.path.join("Resources", "budget_data.csv")
     # The greatest decrease in profits (date and amount) over the entire period
 
 months = 0
-total = 0.0
+total = 0
 changes = []
-increase = 0.0
+dates = []
+lastmonth = 0
+increase = 0
 increasedate = ""
-decrease = 0.0
+decrease = 0
 decreasedate = ""
+firstrow = True
 
 # Read in the CSV module
 with open(datapath) as budget:
@@ -30,18 +33,31 @@ with open(datapath) as budget:
         # Increase number of months by one
         months = months + 1
         # Increase total to eventually sum all profit/losses
-        total = total + float(row[1])
-        # Add profit/losses to the changes list to later be averaged
-        changes.append(float(row[1]))
-        # Find the greatest increase and greatest decrease (date and amount)
-        if float(row[1]) > float(increase):
-            increase = row[1]
-            increasedate = row[0]
-        if float(row[1]) < float(decrease):
-            decrease = row[1]
-            decreasedate = row[0]
+        total = total + int(row[1])
+        # For the first row we need to set the lastmonth value before going forward, but only for the first row,
+        # this will make it so our later code for calculating the changes list shows correct values in changes[0]
+        if firstrow == True:
+            lastmonth = int(row[1])
+            firstrow = False
+        else:
+            # Add changes in profit/losses to the changes list to later be averaged
+            changes.append(int(int(row[1]) - lastmonth))
+            # Set lastmonth to this month's value to be used next loop
+            lastmonth = int(row[1])
+        # Collect the dates in a list
+        dates.append(row[0])
+
 # Calculate the average
 ave = sum(changes) / len(changes)
+
+# Find the greatest increase and greatest decrease (date and amount)
+for i in range(len(changes)):
+    if int(changes[i]) > int(increase):
+        increase = int(changes[i])
+        increasedate = dates[i+1]
+    if int(changes[i]) < int(decrease):
+        decrease = int(changes[i])
+        decreasedate = dates[i+1]
 
 # Print the analysis to the terminal
 print("Financial Analysis")
